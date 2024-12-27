@@ -1,6 +1,7 @@
 plugins {
-    id 'fabric-loom' version '1.6-SNAPSHOT'
+    id 'fabric-loom' version '1.9-SNAPSHOT'
     id 'maven-publish'
+    id 'ploceus' version '1.9.+'
 }
 
 version = "${project.mod_version}+mc${project.minecraft_version}"
@@ -25,9 +26,9 @@ repositories {
 dependencies {
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    mappings("net.ornithemc:feather:${project.feather_mappings}")
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    ploceus.dependOsl(project.osl_version)
 
     include modImplementation("net.hypixel:mod-api:${project.mod_api_version}")
 }

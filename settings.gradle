@@ -4,6 +4,12 @@ pluginManagement {
             name = 'Fabric'
             url = 'https://maven.fabricmc.net/'
         }
+        maven {
+            name = 'Ornithe'
+            url = 'https://maven.ornithemc.net/releases'
+        }
         gradlePluginPortal()
     }
 }
+
+rootProject.name = "mod-api-fabric"

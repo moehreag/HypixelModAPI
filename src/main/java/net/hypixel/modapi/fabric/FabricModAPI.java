@@ -1,10 +1,6 @@
 package net.hypixel.modapi.fabric;
 
-import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.networking.v1.ClientConfigurationNetworking;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.hypixel.modapi.HypixelModAPI;
 import net.hypixel.modapi.fabric.event.HypixelModAPICallback;
@@ -12,14 +8,13 @@ import net.hypixel.modapi.fabric.event.HypixelModAPIErrorCallback;
 import net.hypixel.modapi.fabric.payload.ClientboundHypixelPayload;
 import net.hypixel.modapi.fabric.payload.ServerboundHypixelPayload;
 import net.hypixel.modapi.packet.impl.clientbound.event.ClientboundLocationPacket;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.client.Minecraft;
+import net.ornithemc.osl.networking.api.client.ClientPlayNetworking;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FabricModAPI implements ClientModInitializer {
-    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(FabricModAPI.class);
     private static final boolean DEBUG_MODE = FabricLoader.getInstance().isDevelopmentEnvironment() || Boolean.getBoolean("net.hypixel.modapi.debug");
 
     @Override
@@ -47,52 +42,32 @@ public class FabricModAPI implements ClientModInitializer {
                 LOGGER.error("Failed to register clientbound packet with identifier '{}'", identifier, e);
             }
         }
-
-        for (String identifier : HypixelModAPI.getInstance().getRegistry().getServerboundIdentifiers()) {
-            try {
-                registerServerbound(identifier);
-                LOGGER.info("Registered serverbound packet with identifier '{}'", identifier);
-            } catch (Exception e) {
-                LOGGER.error("Failed to register serverbound packet with identifier '{}'", identifier, e);
-            }
-        }
     }
 
     private static void registerPacketSender() {
         HypixelModAPI.getInstance().setPacketSender((packet) -> {
             ServerboundHypixelPayload hypixelPayload = new ServerboundHypixelPayload(packet);
 
-            if (MinecraftClient.getInstance().getNetworkHandler() != null) {
-                ClientPlayNetworking.send(hypixelPayload);
+            if (Minecraft.getInstance().getNetworkHandler() != null) {
+                System.out.println("Sending: " + hypixelPayload + " " + packet);
+                ClientPlayNetworking.doSend(packet.getIdentifier(), hypixelPayload);
                 return true;
             }
 
-            try {
-                ClientConfigurationNetworking.send(hypixelPayload);
-                return true;
-            } catch (IllegalStateException ignored) {
-                LOGGER.warn("Failed to send a packet as the client is not connected to a server '{}'", packet);
-                return false;
-            }
+            LOGGER.warn("Failed to send a packet as the client is not connected to a server '{}'", packet);
+            return false;
         });
     }
 
     private static void registerClientbound(String identifier) {
         try {
-            CustomPayload.Id<ClientboundHypixelPayload> clientboundId = CustomPayload.id(identifier);
-            PacketCodec<PacketByteBuf, ClientboundHypixelPayload> codec = ClientboundHypixelPayload.buildCodec(clientboundId);
-            PayloadTypeRegistry.playS2C().register(clientboundId, codec);
-            PayloadTypeRegistry.configurationS2C().register(clientboundId, codec);
+            String clientboundId = identifier;
 
             // Also register the global receiver for handling incoming packets during PLAY and CONFIGURATION
-            ClientPlayNetworking.registerGlobalReceiver(clientboundId, (payload, context) -> {
+            ClientPlayNetworking.registerListener(clientboundId, () -> new ClientboundHypixelPayload(identifier), (minecraft, handler, data) -> {
                 LOGGER.debug("Received packet with identifier '{}', during PLAY", identifier);
-                handleIncomingPayload(identifier, payload);
-
-            });
-            ClientConfigurationNetworking.registerGlobalReceiver(clientboundId, (payload, context) -> {
-                LOGGER.debug("Received packet with identifier '{}', during CONFIGURATION", identifier);
-                handleIncomingPayload(identifier, payload);
+                handleIncomingPayload(identifier, data);
+                return true;
             });
         } catch (IllegalArgumentException ignored) {
             // Ignored as this is fired when we reload the registrations and the packet is already registered
@@ -126,17 +101,6 @@ public class FabricModAPI implements ClientModInitializer {
             HypixelModAPICallback.EVENT.invoker().onPacketReceived(payload.getPacket());
         } catch (Exception e) {
             LOGGER.error("An error occurred while handling packet {}", identifier, e);
-        }
-    }
-
-    private static void registerServerbound(String identifier) {
-        try {
-            CustomPayload.Id<ServerboundHypixelPayload> serverboundId = CustomPayload.id(identifier);
-            PacketCodec<PacketByteBuf, ServerboundHypixelPayload> codec = ServerboundHypixelPayload.buildCodec(serverboundId);
-            PayloadTypeRegistry.playC2S().register(serverboundId, codec);
-            PayloadTypeRegistry.configurationC2S().register(serverboundId, codec);
-        } catch (IllegalArgumentException ignored) {
-            // Ignored as this is fired when we reload the registrations and the packet is already registered
         }
     }
 

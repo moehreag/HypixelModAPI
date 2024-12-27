@@ -1,19 +1,14 @@
 package net.hypixel.modapi.fabric.event;
 
-import net.fabricmc.fabric.api.event.Event;
-import net.fabricmc.fabric.api.event.EventFactory;
 import net.hypixel.modapi.error.ErrorReason;
+import net.ornithemc.osl.core.api.events.Event;
 
 /**
  * Callback for when a Hypixel Mod API error reason is received.
  */
 public interface HypixelModAPIErrorCallback {
 
-    Event<HypixelModAPIErrorCallback> EVENT = EventFactory.createArrayBacked(HypixelModAPIErrorCallback.class, callbacks -> (identifier, reason) -> {
-        for (HypixelModAPIErrorCallback callback : callbacks) {
-            callback.onError(identifier, reason);
-        }
-    });
+    Event<HypixelModAPIErrorCallback> EVENT = Event.of(l -> (s, r) -> l.forEach(c -> c.onError(s, r)));
 
     void onError(String identifier, ErrorReason reason);
 
