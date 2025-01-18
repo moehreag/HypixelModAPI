@@ -49,7 +49,6 @@ public class FabricModAPI implements ClientModInitializer {
             ServerboundHypixelPayload hypixelPayload = new ServerboundHypixelPayload(packet);
 
             if (Minecraft.getInstance().getNetworkHandler() != null) {
-                System.out.println("Sending: " + hypixelPayload + " " + packet);
                 ClientPlayNetworking.doSend(packet.getIdentifier(), hypixelPayload);
                 return true;
             }
