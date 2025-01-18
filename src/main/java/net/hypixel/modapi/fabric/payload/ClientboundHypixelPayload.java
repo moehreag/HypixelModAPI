@@ -40,6 +40,7 @@ public class ClientboundHypixelPayload implements CustomPayload {
         }
 
         this.packet = HypixelModAPI.getInstance().getRegistry().createClientboundPacket(id, serializer);
+        buf.release();
     }
 
     @Override
