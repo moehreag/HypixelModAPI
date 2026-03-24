@@ -9,6 +9,8 @@ import net.hypixel.modapi.fabric.payload.ClientboundHypixelPayload;
 import net.hypixel.modapi.fabric.payload.ServerboundHypixelPayload;
 import net.hypixel.modapi.packet.impl.clientbound.event.ClientboundLocationPacket;
 import net.minecraft.client.Minecraft;
+import net.ornithemc.osl.core.api.util.NamespacedIdentifiers;
+import net.ornithemc.osl.networking.api.PacketBuffers;
 import net.ornithemc.osl.networking.api.client.ClientPlayNetworking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +51,7 @@ public class FabricModAPI implements ClientModInitializer {
             ServerboundHypixelPayload hypixelPayload = new ServerboundHypixelPayload(packet);
 
             if (Minecraft.getInstance().getNetworkHandler() != null) {
-                ClientPlayNetworking.doSend(packet.getIdentifier(), hypixelPayload);
+                ClientPlayNetworking.send(NamespacedIdentifiers.parse(packet.getIdentifier()), hypixelPayload::write);
                 return true;
             }
 
@@ -60,13 +62,12 @@ public class FabricModAPI implements ClientModInitializer {
 
     private static void registerClientbound(String identifier) {
         try {
-            String clientboundId = identifier;
+            var clientboundId = NamespacedIdentifiers.parse(identifier);
 
             // Also register the global receiver for handling incoming packets during PLAY and CONFIGURATION
-            ClientPlayNetworking.registerListener(clientboundId, () -> new ClientboundHypixelPayload(identifier), (minecraft, handler, data) -> {
+            ClientPlayNetworking.registerListener(clientboundId, () -> new ClientboundHypixelPayload(identifier), (minecraft, data) -> {
                 LOGGER.debug("Received packet with identifier '{}', during PLAY", identifier);
                 handleIncomingPayload(identifier, data);
-                return true;
             });
         } catch (IllegalArgumentException ignored) {
             // Ignored as this is fired when we reload the registrations and the packet is already registered

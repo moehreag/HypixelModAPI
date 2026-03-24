@@ -4,23 +4,23 @@ import java.io.IOException;
 
 import net.hypixel.modapi.packet.HypixelPacket;
 import net.hypixel.modapi.serializer.PacketSerializer;
-import net.minecraft.network.PacketByteBuf;
-import net.ornithemc.osl.networking.api.CustomPayload;
+import net.ornithemc.osl.networking.api.PacketBuffer;
+import net.ornithemc.osl.networking.api.PacketPayload;
 
-public class ServerboundHypixelPayload implements CustomPayload {
-    private final HypixelPacket packet;
+public class ServerboundHypixelPayload implements PacketPayload {
+	private final HypixelPacket packet;
 
-    public ServerboundHypixelPayload(HypixelPacket packet) {
-        this.packet = packet;
-    }
+	public ServerboundHypixelPayload(HypixelPacket packet) {
+		this.packet = packet;
+	}
 
-    @Override
-    public void read(PacketByteBuf buffer) throws IOException {
-        throw new UnsupportedOperationException("Cannot read ServerboundHypixelPayload");
-    }
+	@Override
+	public void read(PacketBuffer buffer) throws IOException {
+		throw new UnsupportedOperationException("Cannot read ServerboundHypixelPayload");
+	}
 
-    public void write(PacketByteBuf buf) {
-        PacketSerializer serializer = new PacketSerializer(buf);
-        packet.write(serializer);
-    }
+	public void write(PacketBuffer buf) {
+		PacketSerializer serializer = new PacketSerializer(buf);
+		packet.write(serializer);
+	}
 }
