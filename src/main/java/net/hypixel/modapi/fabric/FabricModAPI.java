@@ -37,7 +37,7 @@ public class FabricModAPI implements ClientModInitializer, HypixelModAPIImplemen
 	@Override
 	public void onInit() {
 		HypixelModAPI.getInstance().createHandler(ClientboundHelloPacket.class, packet -> onHypixel = true);
-		ClientConnectionEvents.DISCONNECT.register(client -> onHypixel = false);
+		ClientConnectionEvents.DISCONNECT.register(ctx -> onHypixel = false);
 
 		if (DEBUG_MODE) {
 			LOGGER.info("Debug mode is enabled!");
@@ -80,7 +80,9 @@ public class FabricModAPI implements ClientModInitializer, HypixelModAPIImplemen
 		for (String identifier : HypixelModAPI.getInstance().getRegistry().getClientboundIdentifiers()) {
 			try {
 				registerClientbound(identifier);
-				LOGGER.info("Registered clientbound packet with identifier '{}'", identifier);
+				if (DEBUG_MODE) {
+					LOGGER.info("Registered clientbound packet with identifier '{}'", identifier);
+				}
 			} catch (Exception e) {
 				LOGGER.error("Failed to register clientbound packet with identifier '{}'", identifier, e);
 			}
@@ -89,7 +91,9 @@ public class FabricModAPI implements ClientModInitializer, HypixelModAPIImplemen
 		for (String identifier : HypixelModAPI.getInstance().getRegistry().getServerboundIdentifiers()) {
 			try {
 				registerServerbound(identifier);
-				LOGGER.info("Registered serverbound packet with identifier '{}'", identifier);
+				if (DEBUG_MODE) {
+					LOGGER.info("Registered serverbound packet with identifier '{}'", identifier);
+				}
 			} catch (Exception e) {
 				LOGGER.error("Failed to register serverbound packet with identifier '{}'", identifier, e);
 			}
