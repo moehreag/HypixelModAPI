@@ -57,7 +57,7 @@ public class FabricModAPI implements ClientModInitializer, HypixelModAPIImplemen
 
 		if (Minecraft.getInstance().getNetworkHandler() != null) {
 			NamespacedIdentifier id = NamespacedIdentifiers.parse(packet.getIdentifier());
-			ClientPlayNetworking.send(id, hypixelPayload);
+			ClientPlayNetworking.sendNoCheck(id, hypixelPayload);
 			return true;
 		}
 
