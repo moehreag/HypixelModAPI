@@ -106,9 +106,9 @@ public class FabricModAPI implements ClientModInitializer, HypixelModAPIImplemen
 
 			// Also register the global receiver for handling incoming packets during PLAY and CONFIGURATION
 			ChannelRegistry.register(clientboundId, true, false);
-			ClientPlayNetworking.registerListener(clientboundId, () -> new ClientboundHypixelPayload(identifier), (minecraft, data) -> {
+			ClientPlayNetworking.registerListener(clientboundId, () -> new ClientboundHypixelPayload(identifier), (context, data) -> {
 				LOGGER.debug("Received packet with identifier '{}', during PLAY", identifier);
-				handleIncomingPayload(identifier, data);
+				context.minecraft().executeTask(() -> handleIncomingPayload(identifier, data));
 			});
 		} catch (IllegalArgumentException ignored) {
 			// Ignored as this is fired when we reload the registrations and the packet is already registered
